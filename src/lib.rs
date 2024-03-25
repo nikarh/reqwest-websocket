@@ -42,23 +42,11 @@
 
 use std::{
     pin::Pin,
-    task::{
-        Context,
-        Poll,
-    },
+    task::{Context, Poll},
 };
 
-use futures_util::{
-    Sink,
-    SinkExt,
-    Stream,
-    StreamExt,
-};
-use reqwest::{
-    Client,
-    IntoUrl,
-    RequestBuilder,
-};
+use futures_util::{Sink, SinkExt, Stream, StreamExt};
+use reqwest::{Client, IntoUrl, RequestBuilder};
 
 #[cfg(not(target_arch = "wasm32"))]
 mod native;
@@ -193,6 +181,11 @@ impl UpgradeResponse {
 
         Ok(WebSocket { inner, protocol })
     }
+
+    /// Consumes the response and returns the inner [`reqwest::Response`].
+    pub async fn into_inner(self) -> reqwest::Response {
+        self.inner.response
+    }
 }
 
 /// A websocket connection
@@ -257,20 +250,11 @@ impl Sink<Message> for WebSocket {
 
 #[cfg(test)]
 mod tests {
-    use futures_util::{
-        SinkExt,
-        TryStreamExt,
-    };
+    use futures_util::{SinkExt, TryStreamExt};
     use reqwest::Client;
 
-    use super::{
-        Message,
-        RequestBuilderExt,
-    };
-    use crate::{
-        websocket,
-        WebSocket,
-    };
+    use super::{Message, RequestBuilderExt};
+    use crate::{websocket, WebSocket};
 
     async fn test_websocket(mut websocket: WebSocket) {
         let text = "Hello, World!";
